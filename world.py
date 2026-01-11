@@ -28,16 +28,46 @@ world = {
     16: {"up": 1,  "left": 7},
 }
 
+locationNames = {
+    1: "Entrance",
+    2: "Produce",
+    3: "Dairy",
+    4: "hallway",
+    5: "grains",
+    6: "meat",
+    7: "beverges",
+    8: "candy",
+    9: "hallway",
+    10: "restaraunt",
+    11: "pharmay",
+    12: "bathroom",
+    13: "clothing",
+    14:"helpdesk",
+    15: "chekcont",
+    16:"exit", 
+}
+
+def returnLocationName (locationNumber):
+    if locationNumber in locationNames:
+        return locationNames[locationNumber]
+    else:
+        return "Not a Location"
+
 location = 1
 
-while True:
-    print(f"You are at location {location}")
+def movement():
+    global location
+    
+    print(f"You are at location: {returnLocationName(location)}")
     userInput = input("Move (up, down, left, right or quit): ").lower()
 
     if userInput == "quit":
-        break
+        return
 
     if userInput in world[location]:
         location = world[location][userInput]
     else:
         print("You are at a Wall")
+        
+while True:
+    movement()
