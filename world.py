@@ -9,6 +9,9 @@
 # for i in shoppingDict:
 #      print("shopping dictionary at index", i, shoppingDict[i])
 
+location = 1
+cart =[]
+
 world = {
     1: {"up": 2, "down": 16, "right": 14},
     2: {"up": 3, "down": 1, "right": 15, "left": 5},
@@ -29,23 +32,90 @@ world = {
 }
 
 locationNames = {
-    1: "Entrance",
-    2: "Produce",
-    3: "Dairy",
+    1: "entrance",
+    2: "produce",
+    3: "dairy",
     4: "hallway",
     5: "grains",
     6: "meat",
-    7: "beverges",
+    7: "beverages",
     8: "candy",
     9: "hallway",
-    10: "restaraunt",
-    11: "pharmay",
+    10: "restaurant",
+    11: "pharmacy",
     12: "bathroom",
     13: "clothing",
-    14:"helpdesk",
-    15: "chekcont",
-    16:"exit", 
+    14: "helpdesk",
+    15: "checkout",
+    16: "exit", 
 }
+
+
+store = {
+    "produce": {
+        "apples": 3,
+        "bananas": 5,
+        "carrots": 4,
+        "lettuce": 2
+    },
+
+    "dairy": {
+        "milk": 4,
+        "cheese": 6,
+        "yogurt": 5,
+        "butter": 3
+    },
+
+    "grains": {
+        "bread": 3,
+        "rice": 10,
+        "pasta": 4,
+        "cereal": 5
+    },
+
+    "meat": {
+        "chicken": 8,
+        "beef": 12,
+        "pork": 9,
+        "fish": 11
+    },
+
+    "beverages": {
+        "water": 2,
+        "soda": 3,
+        "juice": 4,
+        "coffee": 6
+    },
+
+    "candy": {
+        "chocolate": 2,
+        "gummies": 1,
+        "lollipop": 1,
+        "caramel": 2
+    },
+
+    "restaurant": {
+        "burger": 10,
+        "pizza": 12,
+        "salad": 8,
+        "fries": 4
+    },
+
+    "pharmacy": {
+        "pain_reliever": 6,
+        "vitamins": 10,
+        "bandages": 4,
+        "cough_syrup": 7
+    },
+
+    "clothing": {
+        "t_shirt": 15,
+        "jeans": 40,
+        "jacket": 60,
+        "socks": 5
+    }
+}
+
 
 def returnLocationName (locationNumber):
     if locationNumber in locationNames:
@@ -53,13 +123,27 @@ def returnLocationName (locationNumber):
     else:
         return "Not a Location"
 
-location = 1
+def movementNames(location):
+    for i in world[location]:
+        print(f"Move {i} to {returnLocationName(world[location][i])}")
+        
+def displayProducts(location):
+    location_name = returnLocationName(location)
+    if location_name in store:
+        print("Products available:")
+        for item, price in store[location_name].items():
+            print(f"  {item}: ${price}")
+    else:
+        print("No products available here.")
+
 
 def movement():
     global location
     
     print(f"You are at location: {returnLocationName(location)}")
-    userInput = input("Move (up, down, left, right or quit): ").lower()
+    displayProducts(location)
+    movementNames(location)
+    userInput = input("\n\t\t\t\t\tEnter where you want to move: ").lower()
 
     if userInput == "quit":
         return
