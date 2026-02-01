@@ -8,9 +8,12 @@
 # print("shopping dictionary:",shoppingDict)
 # for i in shoppingDict:
 #      print("shopping dictionary at index", i, shoppingDict[i])
+import random
 
 location = 1
-cart =[]
+cart = []
+totalSum = 0
+playerMoney = random.randint(10, 100)
 
 world = {
     1: {"up": 2, "down": 16, "right": 14},
@@ -43,7 +46,7 @@ locationNames = {
     9: "hallway",
     10: "restaurant",
     11: "pharmacy",
-    12: "bathroom",
+    12: "hallway",
     13: "clothing",
     14: "helpdesk",
     15: "checkout",
@@ -124,34 +127,96 @@ def returnLocationName (locationNumber):
         return "Not a Location"
 
 def movementNames(location):
+    print("\n" + "-" * 60)
+    print("  AVAILABLE EXITS:")
+    print("-" * 60)
     for i in world[location]:
-        print(f"Move {i} to {returnLocationName(world[location][i])}")
+        print(f"    ➜  Move {i.upper():<8} to {returnLocationName(world[location][i]).upper()}")
+    print("-" * 60)
         
 def displayProducts(location):
     location_name = returnLocationName(location)
     if location_name in store:
-        print("Products available:")
+        print("\n" + "=" * 60)
+        print(f"  🛒 PRODUCTS AVAILABLE AT {location_name.upper()}:")
+        print("=" * 60)
         for item, price in store[location_name].items():
-            print(f"  {item}: ${price}")
+            print(f"    • {item.replace('_', ' ').title():<25} ${price:>5}")
+        print("=" * 60)
     else:
-        print("No products available here.")
+        print("\n    ℹ️  No products available here.\n")
 
+def displayCart():
+    global totalSum
+    
+    totalPrice = 0
+    
+    print("\n" + "=" * 60)
+    print("  🛍️  YOUR SHOPPING CART:")
+    print("=" * 60)
+    
+    if not cart:
+        print("    (Cart is empty)")
+    else:
+        for i in cart:
+            for j in store:
+                for k in store[j]:
+                    if k == i:     
+                        print(f"    • {i.replace('_', ' ').title():<25} ${store[j][k]:>5}")
+                        totalPrice = totalPrice + store[j][k]
+        print("-" * 60)
+        print(f"    TOTAL PRICE: ${totalPrice:>5}")
+    
+    print("=" * 60)
+    
+    totalSum = totalPrice
+
+def buyProducts(location):
+    product_locations_list = [2, 3, 5, 6, 7, 8, 10, 11, 13]
+    
+    if location in product_locations_list:
+        displayProducts(location)
+        userInput = input("\n  ➤ Enter item to add to cart (or 'x' to stop): ").lower()
+    
+        while userInput != 'x':
+            if userInput != 'x':
+                cart.append(userInput)
+                print(f"\n    ✓ Added '{userInput}' to cart!")
+                displayCart()
+            userInput = input("\n  ➤ Enter item to add to cart (or 'x' to stop): ").lower()
+        
+        print(f"\n    👋 Thank you for visiting {returnLocationName(location).upper()}!\n")
+    
+def checkoutCart(location):
+    global playerMoney, totalSum
+    if location == 15:
+        displayCart()
+        
+        userInput = input("Press a to buy cart\nPress x to review cart")
+        
+        if userInput == 'a':
+            playerMoney = playerMoney - totalSum
+            
+        print(f"You have ${playerMoney} left")
+    
 
 def movement():
     global location
     
-    print(f"You are at location: {returnLocationName(location)}")
-    displayProducts(location)
+    print("\n" + "=" * 60)
+    print(f"  📍 CURRENT LOCATION: {returnLocationName(location).upper()}")
+    print("=" * 60)
+    
+    buyProducts(location)
     movementNames(location)
-    userInput = input("\n\t\t\t\t\tEnter where you want to move: ").lower()
-
-    if userInput == "quit":
-        return
+    checkoutCart(location)
+    
+    userInput = input("\n  ➤ Enter direction to move: ").lower()
 
     if userInput in world[location]:
         location = world[location][userInput]
     else:
-        print("You are at a Wall")
+        print("\n    ⚠️  You are at a wall! Please choose a valid direction.\n")
         
 while True:
     movement()
