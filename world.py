@@ -14,6 +14,8 @@ location = 1
 cart = []
 totalSum = 0
 playerMoney = random.randint(10, 100)
+chance = random.randint(1, 1000000)
+value = 32
 
 world = {
     1: {"up": 2, "down": 16, "right": 14},
@@ -119,13 +121,18 @@ store = {
     }
 }
 
-
+# Returns the name of a location based on its location number
+# Takes locationNumber as input and searches the locationNames dictionary
+# Returns the location name if found, otherwise returns "Not a Location"
 def returnLocationName (locationNumber):
     if locationNumber in locationNames:
         return locationNames[locationNumber]
     else:
         return "Not a Location"
-
+    
+# Displays all available exits from the current location
+# Retrieves the available directions (up, down, left, right) from the world dictionary
+# Prints each direction and the corresponding destination location name in a formatted list
 def movementNames(location):
     print("\n" + "-" * 60)
     print("  AVAILABLE EXITS:")
@@ -134,18 +141,28 @@ def movementNames(location):
         print(f"    ➜  Move {i.upper():<8} to {returnLocationName(world[location][i]).upper()}")
     print("-" * 60)
         
+# Displays all products available at the current location
+# Checks if the location name exists in the store dictionary
+# If products are available, prints each item with a numbered list and its price in a formatted table
+# If no products are available, displays an informational message
 def displayProducts(location):
     location_name = returnLocationName(location)
     if location_name in store:
         print("\n" + "=" * 60)
         print(f"  🛒 PRODUCTS AVAILABLE AT {location_name.upper()}:")
         print("=" * 60)
+        item_number = 1
         for item, price in store[location_name].items():
-            print(f"    • {item.replace('_', ' ').title():<25} ${price:>5}")
+            print(f"    {item_number}. {item.replace('_', ' ').title():<23} ${price:>5}")
+            item_number += 1
         print("=" * 60)
     else:
         print("\n    ℹ️  No products available here.\n")
 
+# Displays the current shopping cart and calculates the total price
+# Iterates through all items in the cart and searches the store dictionary to find prices
+# Prints each cart item with its price and displays the total sum at the bottom
+# Updates the global totalSum variable with the calculated price
 def displayCart():
     global totalSum
     
@@ -171,35 +188,119 @@ def displayCart():
     
     totalSum = totalPrice
 
+# Allows the player to browse and add items to their cart at product locations
+# Only runs if the current location is in the product_locations_list (stores with items)
+# Displays available products with numbered items and repeatedly prompts the player to enter item numbers
+# Converts the location to a store category and maps item numbers to actual product names
+# Continues looping until the player enters 'x' to stop shopping
+# Displays the updated cart after each item is added with error handling for invalid numbers
 def buyProducts(location):
     product_locations_list = [2, 3, 5, 6, 7, 8, 10, 11, 13]
     
     if location in product_locations_list:
+        location_name = returnLocationName(location)
         displayProducts(location)
-        userInput = input("\n  ➤ Enter item to add to cart (or 'x' to stop): ").lower()
+        
+        # Create a list of items for this location to map numbers to product names
+        items_list = list(store[location_name].keys())
+        
+        userInput = input("\n  ➤ Enter item number to add to cart (or 'x' to stop): ").lower()
     
         while userInput != 'x':
-            if userInput != 'x':
-                cart.append(userInput)
-                print(f"\n    ✓ Added '{userInput}' to cart!")
-                displayCart()
-            userInput = input("\n  ➤ Enter item to add to cart (or 'x' to stop): ").lower()
+            try:
+                item_index = int(userInput) - 1
+                if 0 <= item_index < len(items_list):
+                    item_name = items_list[item_index]
+                    cart.append(item_name)
+                    print(f"\n    ✓ Added '{item_name.replace('_', ' ').title()}' to cart!")
+                    displayCart()
+                else:
+                    print(f"\n    ⚠️  Invalid item number! Please enter a number between 1 and {len(items_list)}.")
+            except ValueError:
+                print("\n    ⚠️  Please enter a valid number or 'x' to stop!")
+            
+            userInput = input("\n  ➤ Enter item number to add to cart (or 'x' to stop): ").lower()
         
         print(f"\n    👋 Thank you for visiting {returnLocationName(location).upper()}!\n")
     
 def checkoutCart(location):
-    global playerMoney, totalSum
+    global playerMoney, totalSum, cart
     if location == 15:
-        displayCart()
-        
-        userInput = input("Press a to buy cart\nPress x to review cart")
-        
-        if userInput == 'a':
-            playerMoney = playerMoney - totalSum
+        while True:
+            displayCart()
+            print(f"You have ${playerMoney} in your wallet.")
             
-        print(f"You have ${playerMoney} left")
-    
+            userInput = input("\nPress a to buy cart\nPress x to review/remove items: ").lower()
+            
+            if userInput == 'a':
+                if not cart:
+                    print("\n    ℹ️  Your cart is empty!")
+                    break
+                # Check if player has enough money
+                if playerMoney >= totalSum:
+                    playerMoney = playerMoney - totalSum
+                    cart = []  # Clear cart after purchase
+                    print(f"\n    ✓ Purchase successful! You have ${playerMoney} left")
+                    break
+                else:
+                    print(f"\n    ⚠️  Insufficient funds! You need ${totalSum - playerMoney} more.")
+                    
+            elif userInput == 'x':
+                # Review and remove items from cart
+                if not cart:
+                    print("\n    ℹ️  Your cart is empty!")
+                    break
+                else:
+                    print("\n" + "=" * 60)
+                    print("  🛍️  ITEMS IN YOUR CART:")
+                    print("=" * 60)
+                    for idx, item in enumerate(cart):
+                        print(f"    {idx + 1}. {item.replace('_', ' ').title()}")
+                    print("=" * 60)
+                    
+                    removeInput = input("\n  ➤ Enter item number to remove (or 'x' to continue): ").lower()
+                    while removeInput != 'x':
+                        try:
+                            itemIndex = int(removeInput) - 1
+                            if 0 <= itemIndex < len(cart):
+                                removed_item = cart.pop(itemIndex)
+                                print(f"\n    ✓ Removed '{removed_item.replace('_', ' ').title()}' from cart!")
+                                # Recalculate total
+                                displayCart()
+                            else:
+                                print("\n    ⚠️  Invalid item number!")
+                        except ValueError:
+                            print("\n    ⚠️  Please enter a valid number!")
+            else:
+                print("\n    ⚠️  Invalid input! Please press 'a' or 'x'.")
 
+def robbing(location):
+    global chance, value, playerMoney, cart, totalSum
+    if location == 12:
+        if chance == value:
+            print("\n    💰 You successfully robbed the store and got $100! Congratulations!")
+            playerMoney += 100
+            cart = []
+            totalSum = 0
+        else:
+            print("\n    🚨 You got caught trying to rob the store! Game over.")
+            print(f"    💸 You lost all your money and items. You had ${playerMoney} and {len(cart)} items in your cart.")
+            playerMoney = 0
+            cart = []
+            totalSum = 0    
+
+import random
+import sys
+
+# ...existing code...
+
+# Main game loop that handles player movement and interaction
+# Displays the current location name and calls buyProducts and checkoutCart functions
+# Shows available exits and prompts the player to enter physical arrow keys to move
+# Captures raw keyboard input without requiring Enter key press
+# Maps physical arrow keys to directions (up, down, left, right)
+# Updates the global location variable if a valid arrow key is entered
+# Displays an error message if the player tries to move in an invalid direction
 def movement():
     global location
     
@@ -210,13 +311,38 @@ def movement():
     buyProducts(location)
     movementNames(location)
     checkoutCart(location)
+    robbing(location)
     
-    userInput = input("\n  ➤ Enter direction to move: ").lower()
-
-    if userInput in world[location]:
-        location = world[location][userInput]
-    else:
-        print("\n    ⚠️  You are at a wall! Please choose a valid direction.\n")
+    print("\n  ➤ Press arrow key to move (UP/DOWN/LEFT/RIGHT):")
+    
+    # Capture raw keyboard input
+    if sys.platform == "win32":
+        import msvcrt
+        key = msvcrt.getch()
         
+        # Map Windows arrow key codes to directions
+        if key == b'\xe0':  # Special key indicator for Windows
+            arrow_key = msvcrt.getch()
+            arrow_map = {
+                b'H': 'up',      # Up arrow
+                b'P': 'down',    # Down arrow
+                b'K': 'left',    # Left arrow
+                b'M': 'right'    # Right arrow
+            }
+            
+            if arrow_key in arrow_map:
+                direction = arrow_map[arrow_key]
+                if direction in world[location]:
+                    location = world[location][direction]
+                else:
+                    print("\n    ⚠️  You are at a wall! Please choose a valid direction.\n")
+            else:
+                print("\n    ⚠️  Invalid input! Please press an arrow key.\n")
+        else:
+            print("\n    ⚠️  Invalid input! Please press an arrow key.\n")
+    else:
+        # For non-Windows systems (Linux/Mac)
+        print("    (Arrow key support requires Windows. Use ↑/↓/←/→ symbols instead)")
+
 while True:
     movement()
