@@ -16,7 +16,7 @@ totalSum = 0
 playerMoney = random.randint(10, 100)
 chance = random.randint(1, 1000000)
 value = 32
-
+API_Key = "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"
 world = {
     1: {"up": 2, "down": 16, "right": 14},
     2: {"up": 3, "down": 1, "right": 15, "left": 5},
@@ -271,6 +271,8 @@ def checkoutCart(location):
                                 print("\n    ⚠️  Invalid item number!")
                         except ValueError:
                             print("\n    ⚠️  Please enter a valid number!")
+
+                        removeInput = input("\n  ➤ Enter item number to remove (or 'x' to continue): ").lower()
             else:
                 print("\n    ⚠️  Invalid input! Please press 'a' or 'x'.")
 
@@ -287,7 +289,31 @@ def robbing(location):
             print(f"    💸 You lost all your money and items. You had ${playerMoney} and {len(cart)} items in your cart.")
             playerMoney = 0
             cart = []
-            totalSum = 0    
+            totalSum = 0   
+
+import requests
+import json
+def GPT(personality):
+    response = requests.post(
+    url="https://openrouter.ai/api/v1/chat/completions",
+    headers={
+        "Authorization": f"Bearer {API_Key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "<YOUR_SITE_URL>", # Optional. Site URL for rankings on openrouter.ai.
+        "X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
+    },
+    data=json.dumps({
+        "model": "deepseek/deepseek-r1-0528:free",
+        "messages": [
+        {
+            "role": "user",
+            "content": f"you work at a grocery store. anser the cusrtomer with this personality: {personality}"
+        }
+        ]
+    })
+    )
+
+    print(response.json())    
 
 import random
 import sys
@@ -312,6 +338,8 @@ def movement():
     movementNames(location)
     checkoutCart(location)
     robbing(location)
+
+    GPT("bipolar cashier that switches between emotions very fast.")
     
     print("\n  ➤ Press arrow key to move (UP/DOWN/LEFT/RIGHT):")
     
